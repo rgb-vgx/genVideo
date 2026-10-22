@@ -1,99 +1,164 @@
 # genVideo
 
-Tạo video bài giảng tiếng Anh hoạt hình (~2 phút, 1280×720) hoàn toàn bằng code: cô giáo hoạt hình, bảng đen, phụ đề Anh–Việt, giọng đọc TTS offline.
+Render bài giảng hoạt hình 1280×720 / 24 fps từ một file JSON: cô giáo bên
+trái, bảng đen bên phải, phụ đề hai ngôn ngữ, giọng TTS theo từng nhân vật.
+Pipeline mới không dùng `espeak-ng` và không hard-code kịch bản.
 
-Demo: [`output/english_greetings_demo.mp4`](output/english_greetings_demo.mp4) — Lesson 1: Greetings.
+Output mẫu (sinh bởi các lệnh bên dưới):
 
-## Cài đặt
+- [`output/service_en.mp4`](output/service_en.mp4) — bản tiếng Anh, Qwen3-TTS
+- [`output/service_vi.mp4`](output/service_vi.mp4) — bản tiếng Việt, VieNeu-TTS
+- [`output/english_greetings_demo.mp4`](output/english_greetings_demo.mp4) — demo cũ
+  của `make_video.py` (legacy)
 
-Cần Python 3.9+, `ffmpeg` và `espeak-ng`.
+## Yêu cầu
 
-```bash
-# Ubuntu/Debian
-sudo apt install ffmpeg espeak-ng
-# macOS
-brew install ffmpeg espeak-ng
+- Python 3.12, `ffmpeg` / `ffprobe`
+- `pillow`, `numpy` (xem `requirements.txt`)
+- Hai môi trường TTS có sẵn: `.venv-qwen` (Qwen3-TTS) và `.venv-vieneu`
+  (VieNeu-TTS). Nếu chưa có, chạy `bash setup_tts.sh` (cần GPU NVIDIA, ~12 GB
+  đĩa; model cache nằm trong `~/.cache/huggingface`).
+- GPU: RTX 3060 12 GB trở lên. Qwen và VieNeu **không bao giờ chạy đồng thời**.
 
-pip install -r requirements.txt
-```
-
-## Chạy
-
-```bash
-python make_video.py                 # render video vào output/
-python make_video.py preview 3 30 75 # chỉ xuất vài khung hình PNG (giây 3, 30, 75) vào build/
-```
-
-Biến môi trường tuỳ chọn:
-
-| Biến | Mặc định | Ý nghĩa |
-|---|---|---|
-| `GENVIDEO_OUT` | `output/english_greetings_demo.mp4` | File video đầu ra |
-| `GENVIDEO_WORK` | `build/` | Thư mục file tạm (wav, preview) |
-| `GENVIDEO_FONT_BOLD`, `GENVIDEO_FONT_REGULAR` | DejaVu Sans / Arial | Font hỗ trợ tiếng Việt |
-
-## TTS đa ngôn ngữ (Anh – Trung – Nhật – Hàn – Việt)
-
-Repo dùng **2 môi trường tách biệt**, mỗi lần chỉ chạy một model:
-
-| Ngôn ngữ | Model | Môi trường |
-|---|---|---|
-| `en`, `zh`, `ja`, `ko` | Qwen3-TTS 1.7B CustomVoice | `.venv-qwen` |
-| `vi` | VieNeu-TTS v3 Turbo (48 kHz) | `.venv-vieneu` |
-
-Cài đặt một lần:
+## Chạy nhanh
 
 ```bash
-bash setup_tts.sh
+# Kiểm tra JSON và voice coverage
+python -m genvideo validate examples/lesson_min.json
+python -m genvideo validate examples/lesson_min.json --language en --check-files
+
+# Render hai ngôn ngữ
+python -m genvideo render examples/lesson_min.json --language en --out output/service_en.mp4
+python -m genvideo render examples/lesson_min.json --language vi --out output/service_vi.mp4
+
+# Xem trước vài khung hình
+python -m genvideo preview examples/lesson_min.json --language en --at 3,30 \
+  --out-dir build/preview
 ```
 
-Sinh audio:
+Nếu máy không có lệnh `python`, dùng `python3` thay thế. Lần render đầu sẽ load
+model và sinh TTS (khoảng 20–60 giây trên RTX 3060); các lần sau dùng cache
+`build/cache/tts` và chỉ còn thời gian vẽ/encode.
+
+## CLI
+
+```text
+python -m genvideo validate <episode.json> [--language L] [--check-files]
+python -m genvideo render   <episode.json> --language L --out <file.mp4>
+                            [--work-dir DIR] [--keep-work] [--force]
+                            [--cache-dir DIR] [--fps N] [--crf N] [--preset NAME]
+python -m genvideo preview  <episode.json> --language L --at 3,30
+                            [--out-dir DIR] [--work-dir DIR] [--keep-work]
+                            [--force] [--cache-dir DIR] [--fps N]
+```
+
+- Exit code `0` khi thành công, khác `0` khi lỗi.
+- Progress (`[tts]`, `[timeline]`, `[render]`) in ra stderr; kết quả và thời
+  gian in ra stdout.
+- `--work-dir` giữ file tạm; `--keep-work` giữ ở
+  `build/work/<episode>_<language>`.
+- `--force` bỏ qua cache TTS và sinh lại toàn bộ clip.
+
+## JSON episode
+
+Schema đầy đủ: [`docs/episode-schema.md`](docs/episode-schema.md). Ví dụ chạy
+được: [`examples/lesson_min.json`](examples/lesson_min.json), gồm 4 scene
+`title`, `cards`, `dialog`, `repeat` và 2 nhân vật.
+
+Điểm chính:
+
+- Nhân vật đầu tiên trong `characters` là giáo viên; hỗ trợ thêm 1–3 nhân vật
+  hội thoại.
+- `voices` là map `language -> profile` (hoặc list profile có `language` như
+  CMS).
+- Backend: `qwen`, `qwen_clone` cho `en/zh/ja/ko`; `vieneu` cho `vi`.
+- Thiếu bản dịch cho ngôn ngữ đích thì fallback về `source_language` (dùng cả
+  text và voice nguồn).
+- Board: `title` (kicker/title/sub/stars), `cards` (items + icon), `dialog`
+  (bong bóng hội thoại từ `lines`), `repeat` (items + “Your turn!”).
+- `active` là chỉ số item/line đang hiển thị; `repeat: true` + `pause` dài để
+  hiện đồng hồ “Your turn!”.
+
+## TTS và cache
+
+| Ngôn ngữ | Backend | Môi trường |
+| --- | --- | --- |
+| `en`, `zh`, `ja`, `ko` | Qwen3-TTS CustomVoice / Base clone | `.venv-qwen` |
+| `vi` | VieNeu-TTS v3 Turbo | `.venv-vieneu` |
+
+- Renderer gọi `tts_qwen.py`, `tts_qwen_clone.py`, `tts_vieneu.py` bằng
+  `subprocess`, không import `torch`.
+- Line được nhóm theo `(backend, language, voice_id/ref_audio, ref_text,
+  instruct)` để mỗi process chỉ load model một lần cho cả nhóm.
+- Thứ tự chạy: toàn bộ Qwen/Qwen clone xong và thoát, sau đó mới đến VieNeu.
+  Không load hai model cùng lúc.
+- Cache mặc định: `build/cache/tts/<sha256>.wav`. Key gồm đúng các trường
+  `text, language, backend, voice_id, ref_audio, ref_text, instruct`.
+- Line đã có cache thì bỏ qua TTS; `--force` để sinh lại.
+- Lỗi TTS báo rõ line id, language, backend và voice/ref.
+- `GENVIDEO_TTS_MOCK=1` sinh tone test (không cần GPU), lưu riêng trong
+  `build/cache/tts/mock/` để không lẫn với cache thật.
+
+Có thể gọi trực tiếp từng backend như cũ:
 
 ```bash
-python3 tts_gen.py --lang en --text "Hello!" --out output/tts/en.wav
-python3 tts_gen.py --lang vi --text "Xin chào!" --out output/tts/vi.wav
-python3 tts_gen.py --lang all --text-file lines.txt --out-dir output/tts
-python3 tts_gen.py --list-voices
+.venv-qwen/bin/python tts_qwen.py --lang en --text "Hello!" --out output/tts/en.wav
+.venv-vieneu/bin/python tts_vieneu.py --text "Xin chào!" --out output/tts/vi.wav
 ```
 
-`tts_gen.py` gọi từng backend trong process riêng, tuần tự: Qwen chạy xong và thoát trước khi VieNeu được load. Có thể gọi trực tiếp từng môi trường:
+## Renderer
+
+- 1280×720, 24 fps, H.264 + AAC, `+faststart`.
+- Giữ style cũ: bảng đen, cô giáo bên trái, phụ đề dưới; code vẽ được chuyển
+  từ `make_video.py` sang `genvideo/render.py` và tham số hoá theo nhân vật.
+- `dialog` vẽ mặt, màu tóc/áo và tên của từng nhân vật.
+- Phụ đề: dòng chính là ngôn ngữ đích; dòng phụ là `source_language` nếu khác.
+- Audio: mix track theo nhân vật, trim silence từng clip, chèn chime chuyển
+  cảnh; video dùng `-shortest`.
+
+## Test
 
 ```bash
-.venv-qwen/bin/python tts_qwen.py --lang zh,ja,ko --text-file lines.txt --out-dir output/tts
-.venv-vieneu/bin/python tts_vieneu.py --text-file lines_vi.txt --out-dir output/tts
+python -m unittest discover -s tests -t . -v
 ```
 
-### Clone giọng với Qwen3-TTS Base
+Không cần GPU hay model. Test dùng TTS mock, kiểm tra validate JSON, fallback,
+timeline/audio duration, cache key ổn định, cache reuse, `--help`, và render +
+preview end-to-end bằng ffprobe/volumedetect.
 
-Cần clip mẫu 3–10 giây, sạch, một người nói, và transcript khớp chính xác:
+## Cấu trúc
+
+```text
+genvideo/
+  __init__.py
+  __main__.py      # python -m genvideo
+  cli.py           # validate / render / preview
+  schema.py        # dataclass + validation + fallback
+  tts.py           # subprocess backends, grouping, cache
+  audio.py         # load/trim/resample/mix/envelope
+  timeline.py      # scene/line timing
+  pipeline.py      # TTS -> audio -> timeline
+  render.py        # PIL drawing + ffmpeg
+examples/lesson_min.json
+tests/
+docs/episode-schema.md
+```
+
+`make_video.py`, `tts_qwen.py`, `tts_qwen_clone.py`, `tts_vieneu.py`,
+`tts_gen.py` vẫn được giữ. `make_video.py` là legacy hard-code và vẫn dùng
+`espeak-ng`; pipeline mới không gọi nó.
+
+## Tích hợp CMS
+
+Interface ổn định cho worker CMS:
 
 ```bash
-.venv-qwen/bin/python tts_qwen_clone.py \
-  --lang ja \
-  --text "こんにちは、英語の授業へようこそ。" \
-  --ref-audio refs/teacher.wav \
-  --ref-text "Hello, I am your teacher." \
-  --out output/tts/ja.wav
+python -m genvideo render <episode.json> --language <code> --out <path>
 ```
 
-- `--lang`: `en`, `zh`, `ja`, `ko` (Base không hỗ trợ `vi`).
-- `--x-vector-only` nếu không có transcript; độ giống giọng sẽ thấp hơn.
-- Cùng một clip mẫu dùng được cho nhiều câu; script chỉ build prompt một lần.
-
-- Giọng mặc định: `Ryan` (en), `Serena` (zh), `Ono_Anna` (ja), `Sohee` (ko), `Mai Anh` (vi).
-- Đổi giọng bằng `--voice`; Qwen hỗ trợ thêm `--instruct "Speak warmly and slowly"`.
-- VRAM: Qwen ~5–6 GB, VieNeu ~1,1 GB — không load đồng thời.
-- Cache model: `~/.cache/huggingface` (Qwen CustomVoice + Base ~8,6 GB, VieNeu ~0,3 GB).
-- License: Qwen3-TTS và VieNeu-TTS đều Apache 2.0.
-- Nếu dùng clone giọng với Qwen, cài thêm SoX: `sudo apt install sox`.
-
-Lưu ý: `make_video.py` hiện vẫn dùng `espeak-ng`; phần TTS mới đang để riêng để nghe thử trước khi tích hợp.
-
-## Cấu trúc script
-
-- `SCENES`, `BOARDS`: danh sách phần học và nội dung trên bảng.
-- Các lệnh `seg(...)`: kịch bản từng câu (người nói, câu tiếng Anh, phụ đề tiếng Việt, mục đang chỉ trên bảng, động tác tay).
-- `VOICE`: giọng espeak-ng cho cô Lan (`T`) và Nam (`N`).
-- `teacher()`, `draw_board()`, `draw_caption()`: vẽ nhân vật, bảng và phụ đề cho từng khung hình (PIL), rồi pipe sang ffmpeg.
-
-Muốn làm bài khác: sửa `SCENES`, `BOARDS` và các dòng `seg(...)`.
+CMS chưa bị sửa trong milestone này. Worker có thể serialize project detail
+thành episode JSON (map `voices[]` sang map/list, `character_id` sang
+`character`, `source_language = languages[0]` nếu chưa có), chạy lệnh trên và
+đọc stderr để cập nhật progress/log. Renderer không cần import CMS và không
+chiếm GPU trong process HTTP. Xem bảng mapping trong
+[`docs/episode-schema.md`](docs/episode-schema.md#cms-mapping).

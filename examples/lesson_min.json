@@ -1,0 +1,248 @@
+{
+  "title": "English Basics",
+  "template": "chalkboard",
+  "source_language": "en",
+  "languages": ["en", "vi"],
+  "characters": [
+    {
+      "id": "teacher",
+      "name": "Cô Lan",
+      "color": "#2F6FA8",
+      "appearance": {
+        "hair": "#3F2A1E",
+        "long_hair": true
+      },
+      "voices": {
+        "en": {
+          "backend": "qwen",
+          "voice_id": "Serena"
+        },
+        "vi": {
+          "backend": "vieneu",
+          "voice_id": "Mai Anh"
+        }
+      }
+    },
+    {
+      "id": "nam",
+      "name": "Nam",
+      "color": "#C96A2B",
+      "appearance": {
+        "hair": "#1E1E1E",
+        "long_hair": false
+      },
+      "voices": {
+        "en": {
+          "backend": "qwen",
+          "voice_id": "Aiden"
+        },
+        "vi": {
+          "backend": "vieneu",
+          "voice_id": "Hải Đăng"
+        }
+      }
+    }
+  ],
+  "scenes": [
+    {
+      "id": "intro",
+      "title": "Welcome",
+      "subtitle": "Mở đầu",
+      "board": {
+        "type": "title",
+        "kicker": "LESSON 1",
+        "title": {
+          "en": "Greetings",
+          "vi": "Chào hỏi"
+        },
+        "sub": {
+          "en": "Let's learn together",
+          "vi": "Cùng học nhé"
+        },
+        "stars": true
+      },
+      "lines": [
+        {
+          "id": "intro_1",
+          "character": "teacher",
+          "texts": {
+            "en": "Hello everyone! Welcome to English Basics.",
+            "vi": "Xin chào các bạn! Chào mừng đến với English Basics."
+          },
+          "arm": "wave",
+          "pause": 0.5,
+          "active": -1,
+          "repeat": false
+        },
+        {
+          "id": "intro_2",
+          "character": "teacher",
+          "texts": {
+            "en": "Today, we will learn how to greet people.",
+            "vi": "Hôm nay chúng ta sẽ học cách chào hỏi."
+          },
+          "arm": "point",
+          "pause": 0.5,
+          "active": -1,
+          "repeat": false
+        }
+      ]
+    },
+    {
+      "id": "cards",
+      "title": "Hello & Hi",
+      "subtitle": "Lời chào cơ bản",
+      "board": {
+        "type": "cards",
+        "items": [
+          {
+            "texts": {
+              "en": "Hello!",
+              "vi": "Xin chào!"
+            },
+            "icon": "bubble"
+          },
+          {
+            "texts": {
+              "en": "Hi!",
+              "vi": "Chào (thân mật)"
+            },
+            "icon": "bubble"
+          }
+        ]
+      },
+      "lines": [
+        {
+          "id": "cards_1",
+          "character": "teacher",
+          "texts": {
+            "en": "The easiest greeting is Hello.",
+            "vi": "Lời chào dễ nhất là Hello."
+          },
+          "arm": "point",
+          "pause": 0.5,
+          "active": 0,
+          "repeat": false
+        },
+        {
+          "id": "cards_2",
+          "character": "teacher",
+          "texts": {
+            "en": "With friends, you can just say Hi.",
+            "vi": "Với bạn bè, bạn chỉ cần nói Hi."
+          },
+          "arm": "point",
+          "pause": 0.6,
+          "active": 1,
+          "repeat": false
+        }
+      ]
+    },
+    {
+      "id": "dialog",
+      "title": "Listen",
+      "subtitle": "Nghe hội thoại",
+      "board": {
+        "type": "dialog"
+      },
+      "lines": [
+        {
+          "id": "dialog_1",
+          "character": "teacher",
+          "texts": {
+            "en": "Hi! I'm Lan. What's your name?",
+            "vi": "Chào! Mình là Lan. Bạn tên gì?"
+          },
+          "arm": "down",
+          "pause": 0.5,
+          "active": 0,
+          "repeat": false
+        },
+        {
+          "id": "dialog_2",
+          "character": "nam",
+          "texts": {
+            "en": "Hello, Lan. My name is Nam.",
+            "vi": "Chào Lan. Mình tên là Nam."
+          },
+          "arm": "down",
+          "pause": 0.5,
+          "active": 1,
+          "repeat": false
+        },
+        {
+          "id": "dialog_3",
+          "character": "teacher",
+          "texts": {
+            "en": "Nice to meet you, Nam!",
+            "vi": "Rất vui được gặp bạn, Nam!"
+          },
+          "arm": "down",
+          "pause": 0.6,
+          "active": 2,
+          "repeat": false
+        }
+      ]
+    },
+    {
+      "id": "repeat",
+      "title": "Practice",
+      "subtitle": "Luyện nói",
+      "board": {
+        "type": "repeat",
+        "items": [
+          {
+            "texts": {
+              "en": "Hello!",
+              "vi": "Xin chào!"
+            }
+          },
+          {
+            "texts": {
+              "en": "How are you?",
+              "vi": "Bạn khỏe không?"
+            }
+          }
+        ]
+      },
+      "lines": [
+        {
+          "id": "repeat_intro",
+          "character": "teacher",
+          "texts": {
+            "en": "Your turn! Listen and repeat.",
+            "vi": "Đến lượt bạn! Nghe và nhắc lại."
+          },
+          "arm": "point",
+          "pause": 0.5,
+          "active": -1,
+          "repeat": false
+        },
+        {
+          "id": "repeat_1",
+          "character": "teacher",
+          "texts": {
+            "en": "Hello!",
+            "vi": "Xin chào!"
+          },
+          "arm": "point",
+          "pause": 3.0,
+          "active": 0,
+          "repeat": true
+        },
+        {
+          "id": "repeat_2",
+          "character": "teacher",
+          "texts": {
+            "en": "How are you?",
+            "vi": "Bạn khỏe không?"
+          },
+          "arm": "point",
+          "pause": 3.0,
+          "active": 1,
+          "repeat": true
+        }
+      ]
+    }
+  ]
+}
