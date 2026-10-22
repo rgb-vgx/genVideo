@@ -63,10 +63,27 @@ python3 tts_gen.py --list-voices
 .venv-vieneu/bin/python tts_vieneu.py --text-file lines_vi.txt --out-dir output/tts
 ```
 
+### Clone giọng với Qwen3-TTS Base
+
+Cần clip mẫu 3–10 giây, sạch, một người nói, và transcript khớp chính xác:
+
+```bash
+.venv-qwen/bin/python tts_qwen_clone.py \
+  --lang ja \
+  --text "こんにちは、英語の授業へようこそ。" \
+  --ref-audio refs/teacher.wav \
+  --ref-text "Hello, I am your teacher." \
+  --out output/tts/ja.wav
+```
+
+- `--lang`: `en`, `zh`, `ja`, `ko` (Base không hỗ trợ `vi`).
+- `--x-vector-only` nếu không có transcript; độ giống giọng sẽ thấp hơn.
+- Cùng một clip mẫu dùng được cho nhiều câu; script chỉ build prompt một lần.
+
 - Giọng mặc định: `Ryan` (en), `Serena` (zh), `Ono_Anna` (ja), `Sohee` (ko), `Mai Anh` (vi).
 - Đổi giọng bằng `--voice`; Qwen hỗ trợ thêm `--instruct "Speak warmly and slowly"`.
 - VRAM: Qwen ~5–6 GB, VieNeu ~1,1 GB — không load đồng thời.
-- Cache model: `~/.cache/huggingface` (Qwen ~4,3 GB, VieNeu ~0,3 GB).
+- Cache model: `~/.cache/huggingface` (Qwen CustomVoice + Base ~8,6 GB, VieNeu ~0,3 GB).
 - License: Qwen3-TTS và VieNeu-TTS đều Apache 2.0.
 - Nếu dùng clone giọng với Qwen, cài thêm SoX: `sudo apt install sox`.
 
