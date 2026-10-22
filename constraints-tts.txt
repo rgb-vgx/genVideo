@@ -1,0 +1,3 @@
+# Ghim torch cho cả hai môi trường TTS (RTX 3060 / CUDA 12.8)
+torch==2.8.0
+torchaudio==2.8.0

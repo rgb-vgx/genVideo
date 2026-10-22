@@ -1,3 +1,12 @@
 build/
 __pycache__/
 *.pyc
+
+# Môi trường TTS tách biệt
+.venv/
+.venv-qwen/
+.venv-vieneu/
+
+# Audio sinh ra
+output/tts/
+output/tts_samples/

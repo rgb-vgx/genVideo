@@ -32,6 +32,46 @@ Biến môi trường tuỳ chọn:
 | `GENVIDEO_WORK` | `build/` | Thư mục file tạm (wav, preview) |
 | `GENVIDEO_FONT_BOLD`, `GENVIDEO_FONT_REGULAR` | DejaVu Sans / Arial | Font hỗ trợ tiếng Việt |
 
+## TTS đa ngôn ngữ (Anh – Trung – Nhật – Hàn – Việt)
+
+Repo dùng **2 môi trường tách biệt**, mỗi lần chỉ chạy một model:
+
+| Ngôn ngữ | Model | Môi trường |
+|---|---|---|
+| `en`, `zh`, `ja`, `ko` | Qwen3-TTS 1.7B CustomVoice | `.venv-qwen` |
+| `vi` | VieNeu-TTS v3 Turbo (48 kHz) | `.venv-vieneu` |
+
+Cài đặt một lần:
+
+```bash
+bash setup_tts.sh
+```
+
+Sinh audio:
+
+```bash
+python3 tts_gen.py --lang en --text "Hello!" --out output/tts/en.wav
+python3 tts_gen.py --lang vi --text "Xin chào!" --out output/tts/vi.wav
+python3 tts_gen.py --lang all --text-file lines.txt --out-dir output/tts
+python3 tts_gen.py --list-voices
+```
+
+`tts_gen.py` gọi từng backend trong process riêng, tuần tự: Qwen chạy xong và thoát trước khi VieNeu được load. Có thể gọi trực tiếp từng môi trường:
+
+```bash
+.venv-qwen/bin/python tts_qwen.py --lang zh,ja,ko --text-file lines.txt --out-dir output/tts
+.venv-vieneu/bin/python tts_vieneu.py --text-file lines_vi.txt --out-dir output/tts
+```
+
+- Giọng mặc định: `Ryan` (en), `Serena` (zh), `Ono_Anna` (ja), `Sohee` (ko), `Mai Anh` (vi).
+- Đổi giọng bằng `--voice`; Qwen hỗ trợ thêm `--instruct "Speak warmly and slowly"`.
+- VRAM: Qwen ~5–6 GB, VieNeu ~1,1 GB — không load đồng thời.
+- Cache model: `~/.cache/huggingface` (Qwen ~4,3 GB, VieNeu ~0,3 GB).
+- License: Qwen3-TTS và VieNeu-TTS đều Apache 2.0.
+- Nếu dùng clone giọng với Qwen, cài thêm SoX: `sudo apt install sox`.
+
+Lưu ý: `make_video.py` hiện vẫn dùng `espeak-ng`; phần TTS mới đang để riêng để nghe thử trước khi tích hợp.
+
 ## Cấu trúc script
 
 - `SCENES`, `BOARDS`: danh sách phần học và nội dung trên bảng.
