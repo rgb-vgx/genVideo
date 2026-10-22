@@ -1,0 +1,299 @@
+{
+  "title": "Tiếng Nhật cơ bản",
+  "template": "chalkboard",
+  "source_language": "vi",
+  "languages": [
+    "vi",
+    "ja"
+  ],
+  "characters": [
+    {
+      "id": "teacher",
+      "name": "Cô Lan",
+      "color": "#2F6FA8",
+      "appearance": {
+        "hair": "#3F2A1E",
+        "long_hair": true
+      },
+      "voices": {
+        "vi": {
+          "backend": "vieneu",
+          "voice_id": "Mai Anh"
+        },
+        "ja": {
+          "backend": "qwen",
+          "voice_id": "Ono_Anna"
+        }
+      }
+    },
+    {
+      "id": "nam",
+      "name": "Nam",
+      "color": "#C96A2B",
+      "appearance": {
+        "hair": "#1E1E1E",
+        "long_hair": false
+      },
+      "voices": {
+        "vi": {
+          "backend": "vieneu",
+          "voice_id": "Hải Đăng"
+        },
+        "ja": {
+          "backend": "qwen",
+          "voice_id": "Ono_Anna"
+        }
+      }
+    }
+  ],
+  "scenes": [
+    {
+      "id": "intro",
+      "title": {
+        "vi": "Mở đầu",
+        "ja": "はじめに"
+      },
+      "subtitle": {
+        "vi": "Bài 1",
+        "ja": "レッスン1"
+      },
+      "board": {
+        "type": "title",
+        "kicker": "LESSON 1",
+        "title": {
+          "vi": "Chào hỏi",
+          "ja": "あいさつ"
+        },
+        "sub": {
+          "vi": "Chào hỏi · Cùng học tiếng Nhật nhé"
+        },
+        "stars": true
+      },
+      "lines": [
+        {
+          "id": "intro_1",
+          "character": "teacher",
+          "texts": {
+            "vi": "Xin chào các bạn! Hôm nay chúng ta cùng học tiếng Nhật nhé."
+          },
+          "arm": "wave",
+          "pause": 0.5,
+          "active": -1
+        },
+        {
+          "id": "intro_2",
+          "character": "teacher",
+          "texts": {
+            "vi": "Xin chào!",
+            "ja": "こんにちは！"
+          },
+          "arm": "wave",
+          "pause": 0.6,
+          "active": -1
+        }
+      ]
+    },
+    {
+      "id": "cards",
+      "title": {
+        "vi": "Chào hỏi cơ bản",
+        "ja": "基本のあいさつ"
+      },
+      "subtitle": {
+        "vi": "Hai câu đầu tiên",
+        "ja": "まずはこの二つ"
+      },
+      "board": {
+        "type": "cards",
+        "items": [
+          {
+            "texts": {
+              "vi": "Xin chào",
+              "ja": "こんにちは"
+            },
+            "icon": "bubble"
+          },
+          {
+            "texts": {
+              "vi": "Chào buổi sáng",
+              "ja": "おはようございます"
+            },
+            "icon": "sunrise"
+          }
+        ]
+      },
+      "lines": [
+        {
+          "id": "cards_1",
+          "character": "teacher",
+          "texts": {
+            "vi": "Câu chào thông dụng nhất là..."
+          },
+          "arm": "point",
+          "pause": 0.4,
+          "active": 0,
+          "repeat": false
+        },
+        {
+          "id": "cards_2",
+          "character": "teacher",
+          "texts": {
+            "vi": "Xin chào.",
+            "ja": "こんにちは。"
+          },
+          "arm": "point",
+          "pause": 0.7,
+          "active": 0,
+          "repeat": false
+        },
+        {
+          "id": "cards_3",
+          "character": "teacher",
+          "texts": {
+            "vi": "Vào buổi sáng, các bạn có thể nói..."
+          },
+          "arm": "point",
+          "pause": 0.4,
+          "active": 1,
+          "repeat": false
+        },
+        {
+          "id": "cards_4",
+          "character": "teacher",
+          "texts": {
+            "vi": "Chào buổi sáng.",
+            "ja": "おはようございます。"
+          },
+          "arm": "point",
+          "pause": 0.7,
+          "active": 1,
+          "repeat": false
+        }
+      ]
+    },
+    {
+      "id": "dialog",
+      "title": {
+        "vi": "Nghe hội thoại",
+        "ja": "会話を聞こう"
+      },
+      "subtitle": {
+        "vi": "Hội thoại mẫu",
+        "ja": "サンプル会話"
+      },
+      "board": {
+        "type": "dialog"
+      },
+      "lines": [
+        {
+          "id": "dialog_1",
+          "character": "teacher",
+          "texts": {
+            "vi": "Bây giờ, chúng ta cùng nghe một đoạn hội thoại ngắn."
+          },
+          "arm": "down",
+          "pause": 0.5,
+          "active": 0
+        },
+        {
+          "id": "dialog_2",
+          "character": "teacher",
+          "texts": {
+            "vi": "Chào! Tôi là Lan. Bạn tên gì?",
+            "ja": "こんにちは！私はランです。お名前は？"
+          },
+          "arm": "down",
+          "pause": 0.5,
+          "active": 1
+        },
+        {
+          "id": "dialog_3",
+          "character": "nam",
+          "texts": {
+            "vi": "Chào Lan. Tôi tên là Nam.",
+            "ja": "こんにちは、ランさん。私はナムです。"
+          },
+          "arm": "down",
+          "pause": 0.5,
+          "active": 2
+        },
+        {
+          "id": "dialog_4",
+          "character": "teacher",
+          "texts": {
+            "vi": "Rất vui được gặp bạn, Nam!",
+            "ja": "はじめまして、ナムさん！"
+          },
+          "arm": "down",
+          "pause": 0.6,
+          "active": 3
+        }
+      ]
+    },
+    {
+      "id": "repeat",
+      "title": {
+        "vi": "Luyện nói",
+        "ja": "話す練習"
+      },
+      "subtitle": {
+        "vi": "Nhắc lại theo cô",
+        "ja": "先生のあとについて言いましょう"
+      },
+      "board": {
+        "type": "repeat",
+        "items": [
+          {
+            "texts": {
+              "vi": "Xin chào",
+              "ja": "こんにちは"
+            }
+          },
+          {
+            "texts": {
+              "vi": "Bạn khỏe không?",
+              "ja": "お元気ですか？"
+            }
+          }
+        ]
+      },
+      "lines": [
+        {
+          "id": "repeat_intro",
+          "character": "teacher",
+          "texts": {
+            "vi": "Đến lượt bạn! Hãy nghe và nhắc lại."
+          },
+          "arm": "point",
+          "pause": 0.5,
+          "active": -1,
+          "repeat": false
+        },
+        {
+          "id": "repeat_1",
+          "character": "teacher",
+          "texts": {
+            "vi": "Xin chào.",
+            "ja": "こんにちは。"
+          },
+          "arm": "point",
+          "pause": 3.0,
+          "active": 0,
+          "repeat": true
+        },
+        {
+          "id": "repeat_2",
+          "character": "teacher",
+          "texts": {
+            "vi": "Bạn khỏe không?",
+            "ja": "お元気ですか？"
+          },
+          "arm": "point",
+          "pause": 3.0,
+          "active": 1,
+          "repeat": true
+        }
+      ]
+    }
+  ]
+}

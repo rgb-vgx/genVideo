@@ -1,0 +1,299 @@
+{
+  "title": "Tiếng Hàn cơ bản",
+  "template": "chalkboard",
+  "source_language": "vi",
+  "languages": [
+    "vi",
+    "ko"
+  ],
+  "characters": [
+    {
+      "id": "teacher",
+      "name": "Cô Lan",
+      "color": "#2F6FA8",
+      "appearance": {
+        "hair": "#3F2A1E",
+        "long_hair": true
+      },
+      "voices": {
+        "vi": {
+          "backend": "vieneu",
+          "voice_id": "Mai Anh"
+        },
+        "ko": {
+          "backend": "qwen",
+          "voice_id": "Sohee"
+        }
+      }
+    },
+    {
+      "id": "nam",
+      "name": "Nam",
+      "color": "#C96A2B",
+      "appearance": {
+        "hair": "#1E1E1E",
+        "long_hair": false
+      },
+      "voices": {
+        "vi": {
+          "backend": "vieneu",
+          "voice_id": "Hải Đăng"
+        },
+        "ko": {
+          "backend": "qwen",
+          "voice_id": "Sohee"
+        }
+      }
+    }
+  ],
+  "scenes": [
+    {
+      "id": "intro",
+      "title": {
+        "vi": "Mở đầu",
+        "ko": "시작"
+      },
+      "subtitle": {
+        "vi": "Bài 1",
+        "ko": "1과"
+      },
+      "board": {
+        "type": "title",
+        "kicker": "LESSON 1",
+        "title": {
+          "vi": "Chào hỏi",
+          "ko": "인사말"
+        },
+        "sub": {
+          "vi": "Chào hỏi · Cùng học tiếng Hàn nhé"
+        },
+        "stars": true
+      },
+      "lines": [
+        {
+          "id": "intro_1",
+          "character": "teacher",
+          "texts": {
+            "vi": "Xin chào các bạn! Hôm nay chúng ta cùng học tiếng Hàn nhé."
+          },
+          "arm": "wave",
+          "pause": 0.5,
+          "active": -1
+        },
+        {
+          "id": "intro_2",
+          "character": "teacher",
+          "texts": {
+            "vi": "Xin chào!",
+            "ko": "안녕하세요!"
+          },
+          "arm": "wave",
+          "pause": 0.6,
+          "active": -1
+        }
+      ]
+    },
+    {
+      "id": "cards",
+      "title": {
+        "vi": "Chào hỏi cơ bản",
+        "ko": "기본 인사말"
+      },
+      "subtitle": {
+        "vi": "Hai câu đầu tiên",
+        "ko": "먼저 이 두 가지"
+      },
+      "board": {
+        "type": "cards",
+        "items": [
+          {
+            "texts": {
+              "vi": "Xin chào",
+              "ko": "안녕하세요"
+            },
+            "icon": "bubble"
+          },
+          {
+            "texts": {
+              "vi": "Chào buổi sáng",
+              "ko": "좋은 아침이에요"
+            },
+            "icon": "sunrise"
+          }
+        ]
+      },
+      "lines": [
+        {
+          "id": "cards_1",
+          "character": "teacher",
+          "texts": {
+            "vi": "Câu chào thông dụng nhất là..."
+          },
+          "arm": "point",
+          "pause": 0.4,
+          "active": 0,
+          "repeat": false
+        },
+        {
+          "id": "cards_2",
+          "character": "teacher",
+          "texts": {
+            "vi": "Xin chào.",
+            "ko": "안녕하세요."
+          },
+          "arm": "point",
+          "pause": 0.7,
+          "active": 0,
+          "repeat": false
+        },
+        {
+          "id": "cards_3",
+          "character": "teacher",
+          "texts": {
+            "vi": "Vào buổi sáng, các bạn có thể nói..."
+          },
+          "arm": "point",
+          "pause": 0.4,
+          "active": 1,
+          "repeat": false
+        },
+        {
+          "id": "cards_4",
+          "character": "teacher",
+          "texts": {
+            "vi": "Chào buổi sáng.",
+            "ko": "좋은 아침이에요."
+          },
+          "arm": "point",
+          "pause": 0.7,
+          "active": 1,
+          "repeat": false
+        }
+      ]
+    },
+    {
+      "id": "dialog",
+      "title": {
+        "vi": "Nghe hội thoại",
+        "ko": "대화 듣기"
+      },
+      "subtitle": {
+        "vi": "Hội thoại mẫu",
+        "ko": "예시 대화"
+      },
+      "board": {
+        "type": "dialog"
+      },
+      "lines": [
+        {
+          "id": "dialog_1",
+          "character": "teacher",
+          "texts": {
+            "vi": "Bây giờ, chúng ta cùng nghe một đoạn hội thoại ngắn."
+          },
+          "arm": "down",
+          "pause": 0.5,
+          "active": 0
+        },
+        {
+          "id": "dialog_2",
+          "character": "teacher",
+          "texts": {
+            "vi": "Chào! Tôi là Lan. Bạn tên gì?",
+            "ko": "안녕하세요! 저는 란입니다. 이름이 뭐예요?"
+          },
+          "arm": "down",
+          "pause": 0.5,
+          "active": 1
+        },
+        {
+          "id": "dialog_3",
+          "character": "nam",
+          "texts": {
+            "vi": "Chào Lan. Tôi tên là Nam.",
+            "ko": "안녕하세요, 란 씨. 제 이름은 남이에요."
+          },
+          "arm": "down",
+          "pause": 0.5,
+          "active": 2
+        },
+        {
+          "id": "dialog_4",
+          "character": "teacher",
+          "texts": {
+            "vi": "Rất vui được gặp bạn, Nam!",
+            "ko": "만나서 반가워요, 남 씨!"
+          },
+          "arm": "down",
+          "pause": 0.6,
+          "active": 3
+        }
+      ]
+    },
+    {
+      "id": "repeat",
+      "title": {
+        "vi": "Luyện nói",
+        "ko": "말하기 연습"
+      },
+      "subtitle": {
+        "vi": "Nhắc lại theo cô",
+        "ko": "선생님을 따라 말해 보세요"
+      },
+      "board": {
+        "type": "repeat",
+        "items": [
+          {
+            "texts": {
+              "vi": "Xin chào",
+              "ko": "안녕하세요"
+            }
+          },
+          {
+            "texts": {
+              "vi": "Bạn khỏe không?",
+              "ko": "잘 지내세요?"
+            }
+          }
+        ]
+      },
+      "lines": [
+        {
+          "id": "repeat_intro",
+          "character": "teacher",
+          "texts": {
+            "vi": "Đến lượt bạn! Hãy nghe và nhắc lại."
+          },
+          "arm": "point",
+          "pause": 0.5,
+          "active": -1,
+          "repeat": false
+        },
+        {
+          "id": "repeat_1",
+          "character": "teacher",
+          "texts": {
+            "vi": "Xin chào.",
+            "ko": "안녕하세요."
+          },
+          "arm": "point",
+          "pause": 3.0,
+          "active": 0,
+          "repeat": true
+        },
+        {
+          "id": "repeat_2",
+          "character": "teacher",
+          "texts": {
+            "vi": "Bạn khỏe không?",
+            "ko": "잘 지내세요?"
+          },
+          "arm": "point",
+          "pause": 3.0,
+          "active": 1,
+          "repeat": true
+        }
+      ]
+    }
+  ]
+}

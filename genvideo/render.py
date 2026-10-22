@@ -10,6 +10,7 @@ from __future__ import annotations
 import math
 import os
 import random
+import re
 import subprocess
 import sys
 import threading
@@ -120,9 +121,30 @@ FR_CANDIDATES = [
     "/System/Library/Fonts/Supplemental/Arial.ttf",
     "C:/Windows/Fonts/arial.ttf",
 ]
+# Noto Sans CJK is a TrueType collection: JP=0, KR=1, SC=2, TC=3.
+CJK_BOLD_CANDIDATES = [
+    os.environ.get("GENVIDEO_FONT_CJK_BOLD"),
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc",
+    "/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf",
+    "/System/Library/Fonts/PingFang.ttc",
+    "C:/Windows/Fonts/malgunbd.ttf",
+    "C:/Windows/Fonts/msgothic.ttc",
+]
+CJK_REGULAR_CANDIDATES = [
+    os.environ.get("GENVIDEO_FONT_CJK_REGULAR"),
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+    "/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf",
+    "/System/Library/Fonts/PingFang.ttc",
+    "C:/Windows/Fonts/malgun.ttf",
+    "C:/Windows/Fonts/msgothic.ttc",
+]
+_CJK_INDEX = {"jp": 0, "kr": 1, "sc": 2, "tc": 3}
+_FONT_FAMILY = "default"
 _FB: str | None = None
 _FR: str | None = None
-_font_cache: dict[tuple[int, bool], ImageFont.FreeTypeFont] = {}
+_CJK_B: str | None = None
+_CJK_R: str | None = None
+_font_cache: dict[tuple[int, bool, str], ImageFont.FreeTypeFont] = {}
 
 
 def _find_font(candidates: list[str | None], env_name: str) -> str:
@@ -130,25 +152,98 @@ def _find_font(candidates: list[str | None], env_name: str) -> str:
         if candidate and Path(candidate).exists():
             return candidate
     raise RenderError(
-        f"cannot find a font for {env_name}; set GENVIDEO_FONT_BOLD / "
-        "GENVIDEO_FONT_REGULAR to a TTF/OTF file with Vietnamese coverage"
+        f"cannot find a font for {env_name}; set {env_name} to a TTF/OTF "
+        "file that covers the required script"
     )
 
 
+def set_font_family(family: str) -> None:
+    global _FONT_FAMILY
+    if family not in {"default", "jp", "kr", "sc", "tc"}:
+        raise RenderError(f"unknown font family '{family}'")
+    _FONT_FAMILY = family
+
+
+def font_family() -> str:
+    return _FONT_FAMILY
+
+
 def _ensure_fonts() -> None:
-    global _FB, _FR
-    if _FB is None:
-        _FB = _find_font(FB_CANDIDATES, "bold text")
-    if _FR is None:
-        _FR = _find_font(FR_CANDIDATES, "regular text")
+    global _FB, _FR, _CJK_B, _CJK_R
+    if _FONT_FAMILY == "default":
+        if _FB is None:
+            _FB = _find_font(FB_CANDIDATES, "GENVIDEO_FONT_BOLD")
+        if _FR is None:
+            _FR = _find_font(FR_CANDIDATES, "GENVIDEO_FONT_REGULAR")
+        return
+    if _CJK_B is None:
+        _CJK_B = _find_font(CJK_BOLD_CANDIDATES, "GENVIDEO_FONT_CJK_BOLD")
+    if _CJK_R is None:
+        _CJK_R = _find_font(CJK_REGULAR_CANDIDATES, "GENVIDEO_FONT_CJK_REGULAR")
 
 
 def F(size: float, bold: bool = True) -> ImageFont.FreeTypeFont:
     _ensure_fonts()
-    key = (int(size), bold)
+    key = (int(size), bold, _FONT_FAMILY)
     if key not in _font_cache:
-        _font_cache[key] = ImageFont.truetype(_FB if bold else _FR, int(size * S))
+        if _FONT_FAMILY == "default":
+            path = _FB if bold else _FR
+            index = 0
+        else:
+            path = _CJK_B if bold else _CJK_R
+            index = 0
+            if path and path.lower().endswith((".ttc", ".otc")):
+                override = os.environ.get("GENVIDEO_FONT_CJK_INDEX")
+                index = (
+                    int(override)
+                    if override is not None
+                    else _CJK_INDEX.get(_FONT_FAMILY, 0)
+                )
+        assert path is not None
+        _font_cache[key] = ImageFont.truetype(path, int(size * S), index=index)
     return _font_cache[key]
+
+
+_HANGUL_RE = re.compile(r"[\u1100-\u11ff\u3130-\u318f\uac00-\ud7a3]")
+_KANA_RE = re.compile(r"[\u3040-\u30ff]")
+_CJK_RE = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]")
+
+
+def _episode_texts(episode: Episode):
+    yield episode.title
+    for scene in episode.scenes:
+        yield from scene.title.values()
+        yield from scene.subtitle.values()
+        yield scene.board.kicker
+        yield from scene.board.title.values()
+        yield from scene.board.sub.values()
+        for item in scene.board.items:
+            yield from item.texts.values()
+        for line in scene.lines:
+            yield from line.texts.values()
+
+
+def detect_font_family(episode: Episode, language: str) -> str:
+    """Pick a CJK-capable font family when the content needs one.
+
+    Noto Sans CJK also covers Latin and Vietnamese, so a Korean/Japanese
+    lesson rendered with Vietnamese explanations uses one consistent family.
+    """
+    if language == "ko":
+        return "kr"
+    if language == "ja":
+        return "jp"
+    if language == "zh":
+        return "sc"
+    joined = "\n".join(text for text in _episode_texts(episode) if text)
+    if _HANGUL_RE.search(joined):
+        return "kr"
+    if _KANA_RE.search(joined):
+        return "jp"
+    if _CJK_RE.search(joined):
+        return "sc"
+    return "default"
+
 
 
 def hx(value: str) -> tuple[int, int, int]:
@@ -437,6 +532,7 @@ class Renderer:
             for character in episode.characters
         }
         self.arm_state = list(ARMS["down"])
+        set_font_family(detect_font_family(episode, language))
         _ensure_fonts()
         self.bg = self._build_background()
 
@@ -530,8 +626,10 @@ class Renderer:
         except ValueError:
             current = 0
         scene = self.scene_by_id[cue.scene_id]
-        d.text(Pp(40, 112), scene.title, font=F(26), fill=INK, anchor="lm")
-        d.text(Pp(40, 142), scene.subtitle, font=F(18, False), fill=GRAY, anchor="lm")
+        title, _ = self.pair(scene.title)
+        subtitle, _ = self.pair(scene.subtitle)
+        d.text(Pp(40, 112), title, font=F(26), fill=INK, anchor="lm")
+        d.text(Pp(40, 142), subtitle, font=F(18, False), fill=GRAY, anchor="lm")
 
         count = len(self.scene_order)
         step = 22 if count <= 10 else max(8, 220 / max(1, count - 1))

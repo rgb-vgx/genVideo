@@ -94,8 +94,8 @@ class Line:
 @dataclass
 class Scene:
     id: str
-    title: str
-    subtitle: str
+    title: dict[str, str]
+    subtitle: dict[str, str]
     board: Board
     lines: list[Line] = field(default_factory=list)
     sort_order: int = 0
@@ -664,8 +664,16 @@ def _parse_scene(
 
     scene = Scene(
         id=scene_id,
-        title=_as_str(value.get("title"), f"{ctx}.title", errors),
-        subtitle=_as_str(value.get("subtitle"), f"{ctx}.subtitle", errors),
+        title=_texts(
+            value.get("title"), f"{ctx}.title", errors, source_language, required=False
+        ),
+        subtitle=_texts(
+            value.get("subtitle"),
+            f"{ctx}.subtitle",
+            errors,
+            source_language,
+            required=False,
+        ),
         board=board,
         lines=lines,
         sort_order=_as_int(

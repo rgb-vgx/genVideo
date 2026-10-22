@@ -8,7 +8,7 @@ from pathlib import Path
 from genvideo.errors import ValidationError
 from genvideo.schema import load_episode, parse_episode
 
-from .helpers import EXAMPLE, clone, example_data
+from .helpers import EXAMPLE, ROOT, clone, example_data
 
 
 class SchemaTests(unittest.TestCase):
@@ -133,6 +133,33 @@ class SchemaTests(unittest.TestCase):
         data["scenes"][0]["board"]["title"] = "Greetings"
         episode = parse_episode(data)
         self.assertEqual(episode.scenes[0].board.title["en"], "Greetings")
+
+    def test_japanese_and_korean_lessons_are_valid(self) -> None:
+        for filename, language in [
+            ("lesson_ja.json", "ja"),
+            ("lesson_ko.json", "ko"),
+        ]:
+            with self.subTest(filename=filename):
+                episode = load_episode(ROOT / "examples" / filename)
+                self.assertEqual(episode.source_language, "vi")
+                self.assertIn(language, episode.languages)
+                self.assertEqual(len(episode.scenes), 4)
+                self.assertEqual(len(episode.scenes[0].title), 2)
+                self.assertIn(language, episode.scenes[0].title)
+                self.assertEqual(
+                    episode.scenes[0].title[language],
+                    "はじめに" if language == "ja" else "시작",
+                )
+                # Vietnamese explanation lines fall back to the source voice.
+                self.assertEqual(
+                    sum(
+                        1
+                        for scene in episode.scenes
+                        for line in scene.lines
+                        if language not in line.texts
+                    ),
+                    5,
+                )
 
 
 if __name__ == "__main__":

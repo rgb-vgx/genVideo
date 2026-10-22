@@ -6,8 +6,10 @@ Pipeline mới không dùng `espeak-ng` và không hard-code kịch bản.
 
 Output mẫu (sinh bởi các lệnh bên dưới):
 
-- [`output/service_en.mp4`](output/service_en.mp4) — bản tiếng Anh, Qwen3-TTS
-- [`output/service_vi.mp4`](output/service_vi.mp4) — bản tiếng Việt, VieNeu-TTS
+- [`output/service_en.mp4`](output/service_en.mp4) — bài tiếng Anh, Qwen3-TTS
+- [`output/service_vi.mp4`](output/service_vi.mp4) — bài tiếng Anh thuyết minh tiếng Việt, VieNeu-TTS
+- [`output/service_ja.mp4`](output/service_ja.mp4) — **bài dạy tiếng Nhật** cho người Việt
+- [`output/service_ko.mp4`](output/service_ko.mp4) — **bài dạy tiếng Hàn** cho người Việt
 - [`output/english_greetings_demo.mp4`](output/english_greetings_demo.mp4) — demo cũ
   của `make_video.py` (legacy)
 
@@ -15,6 +17,9 @@ Output mẫu (sinh bởi các lệnh bên dưới):
 
 - Python 3.12, `ffmpeg` / `ffprobe`
 - `pillow`, `numpy` (xem `requirements.txt`)
+- Font CJK cho tiếng Nhật/Hàn: `sudo apt install fonts-noto-cjk` (máy hiện tại
+  đã có Noto Sans CJK). Renderer tự chọn Noto Sans CJK KR/JP khi nội dung có
+  chữ Hàn/Nhật; font này cũng phủ tiếng Việt.
 - Hai môi trường TTS có sẵn: `.venv-qwen` (Qwen3-TTS) và `.venv-vieneu`
   (VieNeu-TTS). Nếu chưa có, chạy `bash setup_tts.sh` (cần GPU NVIDIA, ~12 GB
   đĩa; model cache nằm trong `~/.cache/huggingface`).
@@ -27,12 +32,20 @@ Output mẫu (sinh bởi các lệnh bên dưới):
 python -m genvideo validate examples/lesson_min.json
 python -m genvideo validate examples/lesson_min.json --language en --check-files
 
-# Render hai ngôn ngữ
+# Render bài tiếng Anh (2 bản)
 python -m genvideo render examples/lesson_min.json --language en --out output/service_en.mp4
 python -m genvideo render examples/lesson_min.json --language vi --out output/service_vi.mp4
 
+# Bài dạy tiếng Nhật và tiếng Hàn cho người Việt
+python -m genvideo validate examples/lesson_ja.json --language ja
+python -m genvideo render examples/lesson_ja.json --language ja --out output/service_ja.mp4
+python -m genvideo validate examples/lesson_ko.json --language ko
+python -m genvideo render examples/lesson_ko.json --language ko --out output/service_ko.mp4
+
 # Xem trước vài khung hình
 python -m genvideo preview examples/lesson_min.json --language en --at 3,30 \
+  --out-dir build/preview
+python -m genvideo preview examples/lesson_ko.json --language ko --at 3,20,36 \
   --out-dir build/preview
 ```
 
@@ -79,6 +92,23 @@ Schema đầy đủ: [`docs/episode-schema.md`](docs/episode-schema.md). Ví d�
 - `active` là chỉ số item/line đang hiển thị; `repeat: true` + `pause` dài để
   hiện đồng hồ “Your turn!”.
 
+### Bài dạy tiếng Nhật / tiếng Hàn
+
+`examples/lesson_ja.json` và `examples/lesson_ko.json` là bài dạy cho người
+Việt, không phải bản dịch của bài tiếng Anh:
+
+- `source_language: "vi"`, `languages: ["vi", "ja"]` hoặc `["vi", "ko"]`.
+- Line chỉ có `vi` (lời giảng) được đọc bằng VieNeu, phụ đề tiếng Việt.
+- Line có cả `vi` và `ja`/`ko` (câu mẫu) được đọc bằng Qwen, phụ đề chính là
+  tiếng Nhật/Hàn và phụ đề phụ là tiếng Việt.
+- Board `cards`, `repeat`, `title` hiển thị câu tiếng Nhật/Hàn kèm nghĩa tiếng
+  Việt; `dialog` có bong bóng hội thoại song ngữ ở phụ đề.
+
+Trong một lần render, Qwen chạy xong toàn bộ câu tiếng Nhật/Hàn rồi mới đến
+VieNeu đọc các lời giảng tiếng Việt. Hiện Qwen chỉ có một speaker bản ngữ cho
+mỗi ngôn ngữ (`Ono_Anna` cho `ja`, `Sohee` cho `ko`), nên giáo viên và Nam dùng
+chung giọng; nhân vật vẫn khác nhau qua mặt, màu áo và tên trên board.
+
 ## TTS và cache
 
 | Ngôn ngữ | Backend | Môi trường |
@@ -115,6 +145,9 @@ Có thể gọi trực tiếp từng backend như cũ:
 - Phụ đề: dòng chính là ngôn ngữ đích; dòng phụ là `source_language` nếu khác.
 - Audio: mix track theo nhân vật, trim silence từng clip, chèn chime chuyển
   cảnh; video dùng `-shortest`.
+- Font: DejaVu cho tiếng Việt/Anh; tự chuyển sang Noto Sans CJK KR/JP/SC khi
+  episode có chữ Hàn/Nhật/Trung. Override bằng `GENVIDEO_FONT_CJK_BOLD`,
+  `GENVIDEO_FONT_CJK_REGULAR`, `GENVIDEO_FONT_CJK_INDEX`.
 
 ## Test
 
@@ -123,8 +156,8 @@ python -m unittest discover -s tests -t . -v
 ```
 
 Không cần GPU hay model. Test dùng TTS mock, kiểm tra validate JSON, fallback,
-timeline/audio duration, cache key ổn định, cache reuse, `--help`, và render +
-preview end-to-end bằng ffprobe/volumedetect.
+timeline/audio duration, cache key ổn định, cache reuse, `--help`, font CJK
+KR/JP, và render + preview end-to-end bằng ffprobe/volumedetect.
 
 ## Cấu trúc
 
@@ -138,8 +171,10 @@ genvideo/
   audio.py         # load/trim/resample/mix/envelope
   timeline.py      # scene/line timing
   pipeline.py      # TTS -> audio -> timeline
-  render.py        # PIL drawing + ffmpeg
-examples/lesson_min.json
+  render.py        # PIL drawing + ffmpeg + CJK fonts
+examples/lesson_min.json   # bài tiếng Anh en/vi
+examples/lesson_ja.json    # bài dạy tiếng Nhật, giải thích tiếng Việt
+examples/lesson_ko.json    # bài dạy tiếng Hàn, giải thích tiếng Việt
 tests/
 docs/episode-schema.md
 ```

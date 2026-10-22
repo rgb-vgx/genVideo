@@ -8,6 +8,13 @@ A complete, runnable example is
 [`examples/lesson_min.json`](../examples/lesson_min.json). It contains one
 `title`, one `cards`, one `dialog`, and one `repeat` scene.
 
+Two language-teaching demos are included:
+
+* [`examples/lesson_ja.json`](../examples/lesson_ja.json) — Japanese lesson,
+  Vietnamese explanations, Japanese phrases.
+* [`examples/lesson_ko.json`](../examples/lesson_ko.json) — Korean lesson,
+  Vietnamese explanations, Korean phrases.
+
 ## Pipeline
 
 ```text
@@ -105,13 +112,31 @@ For a render in language `L`:
    something to say. Missing target-language text is allowed; missing target
    voice is an error only when the target text itself is used.
 
+### Mixed-language teaching videos
+
+A language lesson can combine Vietnamese explanations with Korean/Japanese
+example phrases in one video:
+
+```json
+{"source_language": "vi", "languages": ["vi", "ko"]}
+```
+
+* A line whose `texts` contains only `vi` is spoken with the Vietnamese
+  (`vieneu`) voice; its caption is Vietnamese.
+* A line whose `texts` contains both `vi` and `ko` is spoken with the Korean
+  (`qwen`) voice; its caption is Korean with a Vietnamese subtitle.
+
+`examples/lesson_ko.json` and `examples/lesson_ja.json` use this pattern. For a
+`ko` render the pipeline runs the Qwen Korean clips first and the VieNeu
+Vietnamese explanation clips afterwards, still one backend at a time.
+
 ## Scene
 
 ```json
 {
   "id": "intro",
-  "title": "Welcome",
-  "subtitle": "Mở đầu",
+  "title": {"en": "Welcome", "vi": "Mở đầu"},
+  "subtitle": {"en": "Introduction", "vi": "Giới thiệu"},
   "board": {"type": "title", "...": "..."},
   "lines": ["..."]
 }
@@ -120,8 +145,8 @@ For a render in language `L`:
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |
 | `id` | string/int | yes | Unique within the episode. |
-| `title` | string | no | Progress label (top-left). |
-| `subtitle` | string | no | Secondary progress label. |
+| `title` | string or map | no | Progress label (top-left). A plain string means source-language text. |
+| `subtitle` | string or map | no | Secondary progress label; same rules as `title`. |
 | `board` | Board | yes | One of the four board types below. |
 | `lines` | Line[] | yes | At least one line per scene. |
 
@@ -227,8 +252,21 @@ The renderer uses the same pacing as the legacy demo:
 * tail after the last line: `0.8 s`;
 * chime at `0.25 s` and at each scene transition.
 
-`motion` is frame-based at `24 fps` by default. Video: `1280x720`, H.264,
+Timing is frame-based at `24 fps` by default. Video: `1280x720`, H.264,
 `yuv420p`, AAC 128 kbps 44.1 kHz mono, `+faststart`.
+
+## Fonts
+
+Vietnamese/Latin renders use DejaVu Sans (or `GENVIDEO_FONT_BOLD` /
+`GENVIDEO_FONT_REGULAR`). When the episode contains Japanese, Korean, or Chinese
+text, the renderer automatically switches to Noto Sans CJK:
+
+* `GENVIDEO_FONT_CJK_BOLD` / `GENVIDEO_FONT_CJK_REGULAR` override the files;
+* `GENVIDEO_FONT_CJK_INDEX` overrides the TrueType collection index;
+* Noto Sans CJK also covers Vietnamese, so a Korean/Japanese lesson with
+  Vietnamese explanations uses one consistent font.
+
+On Ubuntu/Debian: `sudo apt install fonts-noto-cjk`.
 
 ## CLI
 
@@ -237,6 +275,8 @@ python -m genvideo validate examples/lesson_min.json
 python -m genvideo validate examples/lesson_min.json --language en --check-files
 python -m genvideo render examples/lesson_min.json --language en --out output/service_en.mp4
 python -m genvideo render examples/lesson_min.json --language vi --out output/service_vi.mp4
+python -m genvideo render examples/lesson_ja.json --language ja --out output/service_ja.mp4
+python -m genvideo render examples/lesson_ko.json --language ko --out output/service_ko.mp4
 python -m genvideo preview examples/lesson_min.json --language en --at 3,30 --out-dir build/preview
 ```
 
@@ -319,3 +359,7 @@ The suite covers schema acceptance/rejection, CMS-shaped voice lists, language
 fallback, timeline/audio durations, silence trimming, stable cache keys, cache
 reuse, CLI `--help`, and a full mock-TTS render + preview with ffprobe checks.
 It does not require CUDA, a model download, or `espeak-ng`.
+
+The Japanese/Korean lesson files are validated too; `tests/test_render.py`
+checks CJK font-family detection and (when Noto Sans CJK is installed) that the
+KR/JP fonts load and measure Korean/Japanese text.
